@@ -1549,6 +1549,50 @@ extension IoTSiteWise {
         }
     }
 
+    public struct CreatePresignedPortalUrlRequest: AWSEncodableShape {
+        public static var _encoding = [
+            AWSMemberEncoding(label: "portalId", location: .uri(locationName: "portalId"))
+        ]
+
+        public let portalId: String
+        public let sessionDurationSeconds: Int?
+        public let state: String?
+
+        public init(portalId: String, sessionDurationSeconds: Int? = nil, state: String? = nil) {
+            self.portalId = portalId
+            self.sessionDurationSeconds = sessionDurationSeconds
+            self.state = state
+        }
+
+        public func validate(name: String) throws {
+            try self.validate(self.portalId, name: "portalId", parent: name, max: 36)
+            try self.validate(self.portalId, name: "portalId", parent: name, min: 36)
+            try self.validate(self.portalId, name: "portalId", parent: name, pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+            try self.validate(self.sessionDurationSeconds, name: "sessionDurationSeconds", parent: name, max: 43200)
+            try self.validate(self.sessionDurationSeconds, name: "sessionDurationSeconds", parent: name, min: 900)
+            try self.validate(self.state, name: "state", parent: name, max: 512)
+            try self.validate(self.state, name: "state", parent: name, min: 0)
+            try self.validate(self.state, name: "state", parent: name, pattern: ".+")
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case sessionDurationSeconds
+            case state
+        }
+    }
+
+    public struct CreatePresignedPortalUrlResponse: AWSDecodableShape {
+        public let presignedPortalUrl: String
+
+        public init(presignedPortalUrl: String) {
+            self.presignedPortalUrl = presignedPortalUrl
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case presignedPortalUrl
+        }
+    }
+
     public struct CreateProjectRequest: AWSEncodableShape {
         /// A unique case-sensitive identifier that you can provide to ensure the idempotency of the request. Don't reuse this client token if a new idempotent request is required.
         public let clientToken: String?
@@ -2906,6 +2950,25 @@ extension IoTSiteWise {
         }
     }
 
+    public struct IAMRoleIdentity: AWSEncodableShape & AWSDecodableShape {
+        /// The ARN of the IAM role. For more information, see IAM ARNs in the IAM User Guide.
+        public let arn: String
+
+        public init(arn: String) {
+            self.arn = arn
+        }
+
+        public func validate(name: String) throws {
+            try self.validate(self.arn, name: "arn", parent: name, max: 1600)
+            try self.validate(self.arn, name: "arn", parent: name, min: 1)
+            try self.validate(self.arn, name: "arn", parent: name, pattern: ".*")
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case arn
+        }
+    }
+
     public struct IAMUserIdentity: AWSEncodableShape & AWSDecodableShape {
         /// The ARN of the IAM user. For more information, see IAM ARNs in the IAM User Guide.  If you delete the IAM user, access policies that contain this identity include an empty arn. You can delete the access policy for the IAM user that no longer exists.
         public let arn: String
@@ -2928,25 +2991,30 @@ extension IoTSiteWise {
     public struct Identity: AWSEncodableShape & AWSDecodableShape {
         /// An AWS SSO group identity.
         public let group: GroupIdentity?
+        /// An IAM role identity.
+        public let iamRole: IAMRoleIdentity?
         /// An IAM user identity.
         public let iamUser: IAMUserIdentity?
         /// An AWS SSO user identity.
         public let user: UserIdentity?
 
-        public init(group: GroupIdentity? = nil, iamUser: IAMUserIdentity? = nil, user: UserIdentity? = nil) {
+        public init(group: GroupIdentity? = nil, iamRole: IAMRoleIdentity? = nil, iamUser: IAMUserIdentity? = nil, user: UserIdentity? = nil) {
             self.group = group
+            self.iamRole = iamRole
             self.iamUser = iamUser
             self.user = user
         }
 
         public func validate(name: String) throws {
             try self.group?.validate(name: "\(name).group")
+            try self.iamRole?.validate(name: "\(name).iamRole")
             try self.iamUser?.validate(name: "\(name).iamUser")
             try self.user?.validate(name: "\(name).user")
         }
 
         private enum CodingKeys: String, CodingKey {
             case group
+            case iamRole
             case iamUser
             case user
         }

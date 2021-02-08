@@ -1049,6 +1049,96 @@ extension GlueDataBrew {
         }
     }
 
+    public struct DescribeJobRunRequest: AWSEncodableShape {
+        public static var _encoding = [
+            AWSMemberEncoding(label: "name", location: .uri(locationName: "name")),
+            AWSMemberEncoding(label: "runId", location: .uri(locationName: "runId"))
+        ]
+
+        /// The name of the job being processed during this run.
+        public let name: String
+        /// The unique identifier of the job run.
+        public let runId: String
+
+        public init(name: String, runId: String) {
+            self.name = name
+            self.runId = runId
+        }
+
+        public func validate(name: String) throws {
+            try self.validate(self.name, name: "name", parent: name, max: 240)
+            try self.validate(self.name, name: "name", parent: name, min: 1)
+            try self.validate(self.runId, name: "runId", parent: name, max: 255)
+            try self.validate(self.runId, name: "runId", parent: name, min: 1)
+        }
+
+        private enum CodingKeys: CodingKey {}
+    }
+
+    public struct DescribeJobRunResponse: AWSDecodableShape {
+        /// The number of times that DataBrew has attempted to run the job.
+        public let attempt: Int?
+        /// The date and time when the job completed processing.
+        public let completedOn: Date?
+        /// The name of the dataset for the job to process.
+        public let datasetName: String?
+        /// A message indicating an error (if any) that was encountered when the job ran.
+        public let errorMessage: String?
+        /// The amount of time, in seconds, during which a job run consumed resources.
+        public let executionTime: Int?
+        /// The name of the job being processed during this run.
+        public let jobName: String
+        /// The name of an Amazon CloudWatch log group, where the job writes diagnostic messages when it runs.
+        public let logGroupName: String?
+        /// The current status of Amazon CloudWatch logging for the job run.
+        public let logSubscription: LogSubscription?
+        /// One or more output artifacts from a job run.
+        public let outputs: [Output]?
+        public let recipeReference: RecipeReference?
+        /// The unique identifier of the job run.
+        public let runId: String?
+        /// The Amazon Resource Name (ARN) of the user who initiated the job run.
+        public let startedBy: String?
+        /// The date and time when the job run began.
+        public let startedOn: Date?
+        /// The current state of the job run entity itself.
+        public let state: JobRunState?
+
+        public init(attempt: Int? = nil, completedOn: Date? = nil, datasetName: String? = nil, errorMessage: String? = nil, executionTime: Int? = nil, jobName: String, logGroupName: String? = nil, logSubscription: LogSubscription? = nil, outputs: [Output]? = nil, recipeReference: RecipeReference? = nil, runId: String? = nil, startedBy: String? = nil, startedOn: Date? = nil, state: JobRunState? = nil) {
+            self.attempt = attempt
+            self.completedOn = completedOn
+            self.datasetName = datasetName
+            self.errorMessage = errorMessage
+            self.executionTime = executionTime
+            self.jobName = jobName
+            self.logGroupName = logGroupName
+            self.logSubscription = logSubscription
+            self.outputs = outputs
+            self.recipeReference = recipeReference
+            self.runId = runId
+            self.startedBy = startedBy
+            self.startedOn = startedOn
+            self.state = state
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case attempt = "Attempt"
+            case completedOn = "CompletedOn"
+            case datasetName = "DatasetName"
+            case errorMessage = "ErrorMessage"
+            case executionTime = "ExecutionTime"
+            case jobName = "JobName"
+            case logGroupName = "LogGroupName"
+            case logSubscription = "LogSubscription"
+            case outputs = "Outputs"
+            case recipeReference = "RecipeReference"
+            case runId = "RunId"
+            case startedBy = "StartedBy"
+            case startedOn = "StartedOn"
+            case state = "State"
+        }
+    }
+
     public struct DescribeProjectRequest: AWSEncodableShape {
         public static var _encoding = [
             AWSMemberEncoding(label: "name", location: .uri(locationName: "name"))

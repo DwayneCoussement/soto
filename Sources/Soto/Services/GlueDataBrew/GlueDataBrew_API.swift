@@ -132,6 +132,11 @@ public struct GlueDataBrew: AWSService {
         return self.client.execute(operation: "DescribeJob", path: "/jobs/{name}", httpMethod: .GET, serviceConfig: self.config, input: input, logger: logger, on: eventLoop)
     }
 
+    /// Represents one run of a DataBrew job.
+    public func describeJobRun(_ input: DescribeJobRunRequest, logger: Logger = AWSClient.loggingDisabled, on eventLoop: EventLoop? = nil) -> EventLoopFuture<DescribeJobRunResponse> {
+        return self.client.execute(operation: "DescribeJobRun", path: "/jobs/{name}/jobRun/{runId}", httpMethod: .GET, serviceConfig: self.config, input: input, logger: logger, on: eventLoop)
+    }
+
     /// Returns the definition of a specific DataBrew project.
     public func describeProject(_ input: DescribeProjectRequest, logger: Logger = AWSClient.loggingDisabled, on eventLoop: EventLoop? = nil) -> EventLoopFuture<DescribeProjectResponse> {
         return self.client.execute(operation: "DescribeProject", path: "/projects/{name}", httpMethod: .GET, serviceConfig: self.config, input: input, logger: logger, on: eventLoop)

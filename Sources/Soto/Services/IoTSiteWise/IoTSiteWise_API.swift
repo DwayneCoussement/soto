@@ -112,6 +112,10 @@ public struct IoTSiteWise: AWSService {
         return self.client.execute(operation: "CreatePortal", path: "/portals", httpMethod: .POST, serviceConfig: self.config, input: input, logger: logger, on: eventLoop)
     }
 
+    public func createPresignedPortalUrl(_ input: CreatePresignedPortalUrlRequest, logger: Logger = AWSClient.loggingDisabled, on eventLoop: EventLoop? = nil) -> EventLoopFuture<CreatePresignedPortalUrlResponse> {
+        return self.client.execute(operation: "CreatePresignedPortalUrl", path: "/portals/{portalId}/presigned-url", httpMethod: .POST, serviceConfig: self.config, input: input, logger: logger, on: eventLoop)
+    }
+
     /// Creates a project in the specified portal.
     public func createProject(_ input: CreateProjectRequest, logger: Logger = AWSClient.loggingDisabled, on eventLoop: EventLoop? = nil) -> EventLoopFuture<CreateProjectResponse> {
         return self.client.execute(operation: "CreateProject", path: "/projects", httpMethod: .POST, serviceConfig: self.config, input: input, logger: logger, on: eventLoop)

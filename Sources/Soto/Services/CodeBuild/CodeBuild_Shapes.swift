@@ -1735,8 +1735,11 @@ extension CodeBuild {
     }
 
     public struct GetReportGroupTrendInput: AWSEncodableShape {
+        /// The number of reports to analyze. This operation always retrieves the most recent reports. If this parameter is omitted, the most recent 100 reports are analyzed.
         public let numOfReports: Int?
+        /// The ARN of the report group that contains the reports to analyze.
         public let reportGroupArn: String
+        /// The test report value to accumulate. This must be one of the following values:  Test reports:   DURATION  Accumulate the test run times for the specified reports.  PASS_RATE  Accumulate the percentage of tests that passed for the specified test reports.  TOTAL  Accumulate the total number of tests for the specified test reports.      Code coverage reports:   BRANCH_COVERAGE  Accumulate the branch coverage percentages for the specified test reports.  BRANCHES_COVERED  Accumulate the branches covered values for the specified test reports.  BRANCHES_MISSED  Accumulate the branches missed values for the specified test reports.  LINE_COVERAGE  Accumulate the line coverage percentages for the specified test reports.  LINES_COVERED  Accumulate the lines covered values for the specified test reports.  LINES_MISSED  Accumulate the lines not covered values for the specified test reports.
         public let trendField: ReportGroupTrendFieldType
 
         public init(numOfReports: Int? = nil, reportGroupArn: String, trendField: ReportGroupTrendFieldType) {
@@ -1759,7 +1762,9 @@ extension CodeBuild {
     }
 
     public struct GetReportGroupTrendOutput: AWSDecodableShape {
+        /// An array that contains the raw data for each report.
         public let rawData: [ReportWithRawData]?
+        /// Contains the accumulated trend data.
         public let stats: ReportGroupTrendStats?
 
         public init(rawData: [ReportWithRawData]? = nil, stats: ReportGroupTrendStats? = nil) {
@@ -1988,7 +1993,7 @@ extension CodeBuild {
         public let nextToken: String?
         /// The name of the AWS CodeBuild project.
         public let projectName: String
-        /// The order to list build IDs. Valid values include:    ASCENDING: List the build IDs in ascending order by build ID.    DESCENDING: List the build IDs in descending order by build ID.
+        /// The order to list results in. The results are sorted by build number, not the build identifier. Valid values include:    ASCENDING: List the build IDs in ascending order by build ID.    DESCENDING: List the build IDs in descending order by build ID.   If the project has more than 100 builds, setting the sort order will result in an error.
         public let sortOrder: SortOrderType?
 
         public init(nextToken: String? = nil, projectName: String, sortOrder: SortOrderType? = nil) {
@@ -2778,7 +2783,7 @@ extension CodeBuild {
         public let insecureSsl: Bool?
         /// Information about the location of the source code to be built. Valid values include:   For source code settings that are specified in the source action of a pipeline in AWS CodePipeline, location should not be specified. If it is specified, AWS CodePipeline ignores it. This is because AWS CodePipeline uses the settings in a pipeline's source action instead of this value.   For source code in an AWS CodeCommit repository, the HTTPS clone URL to the repository that contains the source code and the buildspec file (for example, https://git-codecommit.&lt;region-ID&gt;.amazonaws.com/v1/repos/&lt;repo-name&gt;).   For source code in an Amazon Simple Storage Service (Amazon S3) input bucket, one of the following.    The path to the ZIP file that contains the source code (for example, &lt;bucket-name&gt;/&lt;path&gt;/&lt;object-name&gt;.zip).    The path to the folder that contains the source code (for example, &lt;bucket-name&gt;/&lt;path-to-source-code&gt;/&lt;folder&gt;/).      For source code in a GitHub repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your AWS account to your GitHub account. Use the AWS CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with GitHub, on the GitHub Authorize application page, for Organization access, choose Request access next to each repository you want to allow AWS CodeBuild to have access to, and then choose Authorize application. (After you have connected to your GitHub account, you do not need to finish creating the build project. You can leave the AWS CodeBuild console.) To instruct AWS CodeBuild to use this connection, in the source object, set the auth object's type value to OAUTH.   For source code in a Bitbucket repository, the HTTPS clone URL to the repository that contains the source and the buildspec file. You must connect your AWS account to your Bitbucket account. Use the AWS CodeBuild console to start creating a build project. When you use the console to connect (or reconnect) with Bitbucket, on the Bitbucket Confirm access to your account page, choose Grant access. (After you have connected to your Bitbucket account, you do not need to finish creating the build project. You can leave the AWS CodeBuild console.) To instruct AWS CodeBuild to use this connection, in the source object, set the auth object's type value to OAUTH.
         public let location: String?
-        ///  Set to true to report the status of a build's start and finish to your source provider. This option is valid only when your source provider is GitHub, GitHub Enterprise, or Bitbucket. If this is set and you use a different source provider, an invalidInputException is thrown.    The status of a build triggered by a webhook is always reported to your source provider.
+        ///  Set to true to report the status of a build's start and finish to your source provider. This option is valid only when your source provider is GitHub, GitHub Enterprise, or Bitbucket. If this is set and you use a different source provider, an invalidInputException is thrown.  To be able to report the build status to the source provider, the user associated with the source provider must have write access to the repo. If the user does not have write access, the build status cannot be updated. For more information, see Source provider access in the AWS CodeBuild User Guide.   The status of a build triggered by a webhook is always reported to your source provider.
         public let reportBuildStatus: Bool?
         ///  An identifier for this project source.
         public let sourceIdentifier: String?
@@ -2981,20 +2986,21 @@ extension CodeBuild {
     }
 
     public struct ReportGroup: AWSDecodableShape {
-        ///  The ARN of a ReportGroup.
+        /// The ARN of the ReportGroup.
         public let arn: String?
-        ///  The date and time this ReportGroup was created.
+        /// The date and time this ReportGroup was created.
         public let created: Date?
-        ///  Information about the destination where the raw data of this ReportGroup is exported.
+        /// Information about the destination where the raw data of this ReportGroup is exported.
         public let exportConfig: ReportExportConfig?
-        ///  The date and time this ReportGroup was last modified.
+        /// The date and time this ReportGroup was last modified.
         public let lastModified: Date?
-        ///  The name of a ReportGroup.
+        /// The name of the ReportGroup.
         public let name: String?
+        /// The status of the report group. This property is read-only. This can be one of the following values:  ACTIVE  The report group is active.  DELETING  The report group is in the process of being deleted.
         public let status: ReportGroupStatusType?
-        ///  A list of tag key and value pairs associated with this report group.  These tags are available for use by AWS services that support AWS CodeBuild report group tags.
+        /// A list of tag key and value pairs associated with this report group.  These tags are available for use by AWS services that support AWS CodeBuild report group tags.
         public let tags: [Tag]?
-        ///  The type of the ReportGroup. The one valid value is TEST.
+        /// The type of the ReportGroup. This can be one of the following values:  CODE_COVERAGE  The report group contains code coverage reports.  TEST  The report group contains test reports.
         public let type: ReportType?
 
         public init(arn: String? = nil, created: Date? = nil, exportConfig: ReportExportConfig? = nil, lastModified: Date? = nil, name: String? = nil, status: ReportGroupStatusType? = nil, tags: [Tag]? = nil, type: ReportType? = nil) {
@@ -3021,8 +3027,11 @@ extension CodeBuild {
     }
 
     public struct ReportGroupTrendStats: AWSDecodableShape {
+        /// Contains the average of all values analyzed.
         public let average: String?
+        /// Contains the maximum value analyzed.
         public let max: String?
+        /// Contains the minimum value analyzed.
         public let min: String?
 
         public init(average: String? = nil, max: String? = nil, min: String? = nil) {
@@ -3039,7 +3048,9 @@ extension CodeBuild {
     }
 
     public struct ReportWithRawData: AWSDecodableShape {
+        /// The value of the requested data field from the report.
         public let data: String?
+        /// The ARN of the report.
         public let reportArn: String?
 
         public init(data: String? = nil, reportArn: String? = nil) {
@@ -3448,7 +3459,7 @@ extension CodeBuild {
         public let queuedTimeoutInMinutesOverride: Int?
         ///  The credentials for access to a private registry.
         public let registryCredentialOverride: RegistryCredential?
-        ///  Set to true to report to your source provider the status of a build's start and completion. If you use this option with a source provider other than GitHub, GitHub Enterprise, or Bitbucket, an invalidInputException is thrown.    The status of a build triggered by a webhook is always reported to your source provider.
+        ///  Set to true to report to your source provider the status of a build's start and completion. If you use this option with a source provider other than GitHub, GitHub Enterprise, or Bitbucket, an invalidInputException is thrown.  To be able to report the build status to the source provider, the user associated with the source provider must have write access to the repo. If the user does not have write access, the build status cannot be updated. For more information, see Source provider access in the AWS CodeBuild User Guide.   The status of a build triggered by a webhook is always reported to your source provider.
         public let reportBuildStatusOverride: Bool?
         ///  An array of ProjectArtifacts objects.
         public let secondaryArtifactsOverride: [ProjectArtifacts]?

@@ -34,6 +34,11 @@ extension EC2 {
         public var description: String { return self.rawValue }
     }
 
+    public enum AddressAttributeName: String, CustomStringConvertible, Codable {
+        case domainName = "domain-name"
+        public var description: String { return self.rawValue }
+    }
+
     public enum Affinity: String, CustomStringConvertible, Codable {
         case `default`
         case host
@@ -2385,6 +2390,31 @@ extension EC2 {
             case publicIp
             case publicIpv4Pool
             case tags = "tagSet"
+        }
+    }
+
+    public struct AddressAttribute: AWSDecodableShape {
+        /// [EC2-VPC] The allocation ID.
+        public let allocationId: String?
+        /// The pointer (PTR) record for the IP address.
+        public let ptrRecord: String?
+        /// The updated PTR record for the IP address.
+        public let ptrRecordUpdate: PtrUpdateStatus?
+        /// The public IP address.
+        public let publicIp: String?
+
+        public init(allocationId: String? = nil, ptrRecord: String? = nil, ptrRecordUpdate: PtrUpdateStatus? = nil, publicIp: String? = nil) {
+            self.allocationId = allocationId
+            self.ptrRecord = ptrRecord
+            self.ptrRecordUpdate = ptrRecordUpdate
+            self.publicIp = publicIp
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case allocationId
+            case ptrRecord
+            case ptrRecordUpdate
+            case publicIp
         }
     }
 
@@ -5387,6 +5417,8 @@ extension EC2 {
         public let clientToken: String?
         /// A description for the new AMI in the destination Region.
         public let description: String?
+        /// The Amazon Resource Name (ARN) of the Outpost to which to copy the AMI. Only specify this parameter when copying an AMI from an AWS Region to an Outpost. The AMI must be in the Region of the destination Outpost. You cannot copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost. For more information, see  Copying AMIs from an AWS Region to an Outpost in the Amazon Elastic Compute Cloud User Guide.
+        public let destinationOutpostArn: String?
         /// Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.
         public let dryRun: Bool?
         /// Specifies whether the destination snapshots of the copied image should be encrypted. You can encrypt a copy of an unencrypted snapshot, but you cannot create an unencrypted copy of an encrypted snapshot. The default CMK for EBS is used unless you specify a non-default AWS Key Management Service (AWS KMS) CMK using KmsKeyId. For more information, see Amazon EBS Encryption in the Amazon Elastic Compute Cloud User Guide.
@@ -5400,9 +5432,10 @@ extension EC2 {
         /// The name of the Region that contains the AMI to copy.
         public let sourceRegion: String
 
-        public init(clientToken: String? = nil, description: String? = nil, dryRun: Bool? = nil, encrypted: Bool? = nil, kmsKeyId: String? = nil, name: String, sourceImageId: String, sourceRegion: String) {
+        public init(clientToken: String? = nil, description: String? = nil, destinationOutpostArn: String? = nil, dryRun: Bool? = nil, encrypted: Bool? = nil, kmsKeyId: String? = nil, name: String, sourceImageId: String, sourceRegion: String) {
             self.clientToken = clientToken
             self.description = description
+            self.destinationOutpostArn = destinationOutpostArn
             self.dryRun = dryRun
             self.encrypted = encrypted
             self.kmsKeyId = kmsKeyId
@@ -5414,6 +5447,7 @@ extension EC2 {
         private enum CodingKeys: String, CodingKey {
             case clientToken = "ClientToken"
             case description = "Description"
+            case destinationOutpostArn = "DestinationOutpostArn"
             case dryRun
             case encrypted
             case kmsKeyId
@@ -5441,6 +5475,8 @@ extension EC2 {
 
         /// A description for the EBS snapshot.
         public let description: String?
+        /// The Amazon Resource Name (ARN) of the Outpost to which to copy the snapshot. Only specify this parameter when copying a snapshot from an AWS Region to an Outpost. The snapshot must be in the Region for the destination Outpost. You cannot copy a snapshot from an Outpost to a Region, from one Outpost to another, or within the same Outpost. For more information, see  Copying snapshots from an AWS Region to an Outpost in the Amazon Elastic Compute Cloud User Guide.
+        public let destinationOutpostArn: String?
         /// The destination Region to use in the PresignedUrl parameter of a snapshot copy operation. This parameter is only valid for specifying the destination Region in a PresignedUrl parameter, where it is required. The snapshot copy is sent to the regional endpoint that you sent the HTTP request to (for example, ec2.us-east-1.amazonaws.com). With the AWS CLI, this is specified using the --region parameter or the default Region in your AWS configuration file.
         public let destinationRegion: String?
         /// Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.
@@ -5459,8 +5495,9 @@ extension EC2 {
         @OptionalCustomCoding<ArrayCoder<_TagSpecificationsEncoding, TagSpecification>>
         public var tagSpecifications: [TagSpecification]?
 
-        public init(description: String? = nil, destinationRegion: String? = nil, dryRun: Bool? = nil, encrypted: Bool? = nil, kmsKeyId: String? = nil, presignedUrl: String? = nil, sourceRegion: String, sourceSnapshotId: String, tagSpecifications: [TagSpecification]? = nil) {
+        public init(description: String? = nil, destinationOutpostArn: String? = nil, destinationRegion: String? = nil, dryRun: Bool? = nil, encrypted: Bool? = nil, kmsKeyId: String? = nil, presignedUrl: String? = nil, sourceRegion: String, sourceSnapshotId: String, tagSpecifications: [TagSpecification]? = nil) {
             self.description = description
+            self.destinationOutpostArn = destinationOutpostArn
             self.destinationRegion = destinationRegion
             self.dryRun = dryRun
             self.encrypted = encrypted
@@ -5473,6 +5510,7 @@ extension EC2 {
 
         private enum CodingKeys: String, CodingKey {
             case description = "Description"
+            case destinationOutpostArn = "DestinationOutpostArn"
             case destinationRegion
             case dryRun
             case encrypted
@@ -6073,7 +6111,7 @@ extension EC2 {
         public var launchTemplateConfigs: [FleetLaunchTemplateConfigRequest]
         /// Describes the configuration of On-Demand Instances in an EC2 Fleet.
         public let onDemandOptions: OnDemandOptionsRequest?
-        /// Indicates whether EC2 Fleet should replace unhealthy instances.
+        /// Indicates whether EC2 Fleet should replace unhealthy Spot Instances. Supported only for fleets of type maintain. For more information, see EC2 Fleet health checks in the Amazon EC2 User Guide.
         public let replaceUnhealthyInstances: Bool?
         /// Describes the configuration of Spot Instances in an EC2 Fleet.
         public let spotOptions: SpotOptionsRequest?
@@ -7313,15 +7351,18 @@ extension EC2 {
         public let description: String?
         /// Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.
         public let dryRun: Bool?
+        /// The Amazon Resource Name (ARN) of the AWS Outpost on which to create a local snapshot.   To create a snapshot of a volume in a Region, omit this parameter. The snapshot is created in the same Region as the volume.   To create a snapshot of a volume on an Outpost and store the snapshot in the Region, omit this parameter. The snapshot is created in the Region for the Outpost.   To create a snapshot of a volume on an Outpost and store the snapshot on an Outpost, specify the ARN of the destination Outpost. The snapshot must be created on the same Outpost as the volume.   For more information, see  Creating local snapshots from volumes on an Outpost in the Amazon Elastic Compute Cloud User Guide.
+        public let outpostArn: String?
         /// The tags to apply to the snapshot during creation.
         @OptionalCustomCoding<ArrayCoder<_TagSpecificationsEncoding, TagSpecification>>
         public var tagSpecifications: [TagSpecification]?
         /// The ID of the EBS volume.
         public let volumeId: String
 
-        public init(description: String? = nil, dryRun: Bool? = nil, tagSpecifications: [TagSpecification]? = nil, volumeId: String) {
+        public init(description: String? = nil, dryRun: Bool? = nil, outpostArn: String? = nil, tagSpecifications: [TagSpecification]? = nil, volumeId: String) {
             self.description = description
             self.dryRun = dryRun
+            self.outpostArn = outpostArn
             self.tagSpecifications = tagSpecifications
             self.volumeId = volumeId
         }
@@ -7329,6 +7370,7 @@ extension EC2 {
         private enum CodingKeys: String, CodingKey {
             case description = "Description"
             case dryRun
+            case outpostArn = "OutpostArn"
             case tagSpecifications = "TagSpecification"
             case volumeId = "VolumeId"
         }
@@ -7345,15 +7387,18 @@ extension EC2 {
         public let dryRun: Bool?
         /// The instance to specify which volumes should be included in the snapshots.
         public let instanceSpecification: InstanceSpecification
+        /// The Amazon Resource Name (ARN) of the AWS Outpost on which to create the local snapshots.   To create snapshots from an instance in a Region, omit this parameter. The snapshots are created in the same Region as the instance.   To create snapshots from an instance on an Outpost and store the snapshots in the Region, omit this parameter. The snapshots are created in the Region for the Outpost.   To create snapshots from an instance on an Outpost and store the snapshots on an Outpost, specify the ARN of the destination Outpost. The snapshots must be created on the same Outpost as the instance.   For more information, see  Creating multi-volume local snapshots from instances on an Outpost in the Amazon Elastic Compute Cloud User Guide.
+        public let outpostArn: String?
         /// Tags to apply to every snapshot specified by the instance.
         @OptionalCustomCoding<ArrayCoder<_TagSpecificationsEncoding, TagSpecification>>
         public var tagSpecifications: [TagSpecification]?
 
-        public init(copyTagsFromSource: CopyTagsFromSource? = nil, description: String? = nil, dryRun: Bool? = nil, instanceSpecification: InstanceSpecification, tagSpecifications: [TagSpecification]? = nil) {
+        public init(copyTagsFromSource: CopyTagsFromSource? = nil, description: String? = nil, dryRun: Bool? = nil, instanceSpecification: InstanceSpecification, outpostArn: String? = nil, tagSpecifications: [TagSpecification]? = nil) {
             self.copyTagsFromSource = copyTagsFromSource
             self.description = description
             self.dryRun = dryRun
             self.instanceSpecification = instanceSpecification
+            self.outpostArn = outpostArn
             self.tagSpecifications = tagSpecifications
         }
 
@@ -7362,6 +7407,7 @@ extension EC2 {
             case description = "Description"
             case dryRun = "DryRun"
             case instanceSpecification = "InstanceSpecification"
+            case outpostArn = "OutpostArn"
             case tagSpecifications = "TagSpecification"
         }
     }
@@ -8357,7 +8403,7 @@ extension EC2 {
         public let dryRun: Bool?
         /// (Interface and gateway endpoints) A policy to attach to the endpoint that controls access to the service. The policy must be in valid JSON format. If this parameter is not specified, we attach a default policy that allows full access to the service.
         public let policyDocument: String?
-        /// (Interface endpoint) Indicates whether to associate a private hosted zone with the specified VPC. The private hosted zone contains a record set for the default public DNS name for the service for the Region (for example, kinesis.us-east-1.amazonaws.com), which resolves to the private IP addresses of the endpoint network interfaces in the VPC. This enables you to make requests to the default public DNS name for the service instead of the public DNS names that are automatically generated by the VPC endpoint service. To use a private hosted zone, you must set the following VPC attributes to true: enableDnsHostnames and enableDnsSupport. Use ModifyVpcAttribute to set the VPC attributes. Default: true
+        /// (Interface endpoint) Indicates whether to associate a private hosted zone with the specified VPC. The private hosted zone contains a record set for the default public DNS name for the service for the Region (for example, kinesis.us-east-1.amazonaws.com), which resolves to the private IP addresses of the endpoint network interfaces in the VPC. This enables you to make requests to the default public DNS name for the service instead of the public DNS names that are automatically generated by the VPC endpoint service. To use a private hosted zone, you must set the following VPC attributes to true: enableDnsHostnames and enableDnsSupport. Use ModifyVpcAttribute to set the VPC attributes.  Private DNS is not supported for Amazon S3 interface endpoints.  Default: true for supported endpoints
         public let privateDnsEnabled: Bool?
         /// (Gateway endpoint) One or more route table IDs.
         @OptionalCustomCoding<ArrayCoder<_RouteTableIdsEncoding, String>>
@@ -10616,6 +10662,63 @@ extension EC2 {
         }
     }
 
+    public struct DescribeAddressesAttributeRequest: AWSEncodableShape {
+        public struct _AllocationIdsEncoding: ArrayCoderProperties { public static let member = "item" }
+
+        /// [EC2-VPC] The allocation IDs.
+        @OptionalCustomCoding<ArrayCoder<_AllocationIdsEncoding, String>>
+        public var allocationIds: [String]?
+        /// The attribute of the IP address.
+        public let attribute: AddressAttributeName?
+        /// Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.
+        public let dryRun: Bool?
+        /// The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned nextToken value.
+        public let maxResults: Int?
+        /// The token for the next page of results.
+        public let nextToken: String?
+
+        public init(allocationIds: [String]? = nil, attribute: AddressAttributeName? = nil, dryRun: Bool? = nil, maxResults: Int? = nil, nextToken: String? = nil) {
+            self.allocationIds = allocationIds
+            self.attribute = attribute
+            self.dryRun = dryRun
+            self.maxResults = maxResults
+            self.nextToken = nextToken
+        }
+
+        public func validate(name: String) throws {
+            try self.validate(self.maxResults, name: "maxResults", parent: name, max: 1000)
+            try self.validate(self.maxResults, name: "maxResults", parent: name, min: 1)
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case allocationIds = "AllocationId"
+            case attribute = "Attribute"
+            case dryRun = "DryRun"
+            case maxResults = "MaxResults"
+            case nextToken = "NextToken"
+        }
+    }
+
+    public struct DescribeAddressesAttributeResult: AWSDecodableShape {
+        public struct _AddressesEncoding: ArrayCoderProperties { public static let member = "item" }
+
+        /// Information about the IP addresses.
+        @OptionalCustomCoding<ArrayCoder<_AddressesEncoding, AddressAttribute>>
+        public var addresses: [AddressAttribute]?
+        /// The token to use to retrieve the next page of results. This value is null when there are no more results to return.
+        public let nextToken: String?
+
+        public init(addresses: [AddressAttribute]? = nil, nextToken: String? = nil) {
+            self.addresses = addresses
+            self.nextToken = nextToken
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case addresses = "addressSet"
+            case nextToken
+        }
+    }
+
     public struct DescribeAddressesRequest: AWSEncodableShape {
         public struct _AllocationIdsEncoding: ArrayCoderProperties { public static let member = "AllocationId" }
         public struct _FiltersEncoding: ArrayCoderProperties { public static let member = "Filter" }
@@ -12521,7 +12624,7 @@ extension EC2 {
         /// Scopes the images by users with explicit launch permissions. Specify an AWS account ID, self (the sender of the request), or all (public AMIs).
         @OptionalCustomCoding<ArrayCoder<_ExecutableUsersEncoding, String>>
         public var executableUsers: [String]?
-        /// The filters.    architecture - The image architecture (i386 | x86_64 | arm64).    block-device-mapping.delete-on-termination - A Boolean value that indicates whether the Amazon EBS volume is deleted on instance termination.    block-device-mapping.device-name - The device name specified in the block device mapping (for example, /dev/sdh or xvdh).    block-device-mapping.snapshot-id - The ID of the snapshot used for the EBS volume.    block-device-mapping.volume-size - The volume size of the EBS volume, in GiB.    block-device-mapping.volume-type - The volume type of the EBS volume (gp2 | io1 | io2 | st1 | sc1 | standard).    block-device-mapping.encrypted - A Boolean that indicates whether the EBS volume is encrypted.    description - The description of the image (provided during image creation).    ena-support - A Boolean that indicates whether enhanced networking with ENA is enabled.    hypervisor - The hypervisor type (ovm | xen).    image-id - The ID of the image.    image-type - The image type (machine | kernel | ramdisk).    is-public - A Boolean that indicates whether the image is public.    kernel-id - The kernel ID.    manifest-location - The location of the image manifest.    name - The name of the AMI (provided during image creation).    owner-alias - The owner alias, from an Amazon-maintained list (amazon | aws-marketplace). This is not the user-configured AWS account alias set using the IAM console. We recommend that you use the related parameter instead of this filter.    owner-id - The AWS account ID of the owner. We recommend that you use the related parameter instead of this filter.    platform - The platform. To only list Windows-based AMIs, use windows.    product-code - The product code.    product-code.type - The type of the product code (devpay | marketplace).    ramdisk-id - The RAM disk ID.    root-device-name - The device name of the root device volume (for example, /dev/sda1).    root-device-type - The type of the root device volume (ebs | instance-store).    state - The state of the image (available | pending | failed).    state-reason-code - The reason code for the state change.    state-reason-message - The message for the state change.    sriov-net-support - A value of simple indicates that enhanced networking with the Intel 82599 VF interface is enabled.    tag:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key Owner and the value TeamA, specify tag:Owner for the filter name and TeamA for the filter value.    tag-key - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.    virtualization-type - The virtualization type (paravirtual | hvm).
+        /// The filters.    architecture - The image architecture (i386 | x86_64 | arm64).    block-device-mapping.delete-on-termination - A Boolean value that indicates whether the Amazon EBS volume is deleted on instance termination.    block-device-mapping.device-name - The device name specified in the block device mapping (for example, /dev/sdh or xvdh).    block-device-mapping.snapshot-id - The ID of the snapshot used for the EBS volume.    block-device-mapping.volume-size - The volume size of the EBS volume, in GiB.    block-device-mapping.volume-type - The volume type of the EBS volume (gp2 | io1 | io2 | st1 | sc1 | standard).    block-device-mapping.encrypted - A Boolean that indicates whether the EBS volume is encrypted.    description - The description of the image (provided during image creation).    ena-support - A Boolean that indicates whether enhanced networking with ENA is enabled.    hypervisor - The hypervisor type (ovm | xen).    image-id - The ID of the image.    image-type - The image type (machine | kernel | ramdisk).    is-public - A Boolean that indicates whether the image is public.    kernel-id - The kernel ID.    manifest-location - The location of the image manifest.    name - The name of the AMI (provided during image creation).    owner-alias - The owner alias (amazon | aws-marketplace). The valid aliases are defined in an Amazon-maintained list. This is not the AWS account alias that can be set using the IAM console. We recommend that you use the Owner request parameter instead of this filter.    owner-id - The AWS account ID of the owner. We recommend that you use the Owner request parameter instead of this filter.    platform - The platform. To only list Windows-based AMIs, use windows.    product-code - The product code.    product-code.type - The type of the product code (devpay | marketplace).    ramdisk-id - The RAM disk ID.    root-device-name - The device name of the root device volume (for example, /dev/sda1).    root-device-type - The type of the root device volume (ebs | instance-store).    state - The state of the image (available | pending | failed).    state-reason-code - The reason code for the state change.    state-reason-message - The message for the state change.    sriov-net-support - A value of simple indicates that enhanced networking with the Intel 82599 VF interface is enabled.    tag:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key Owner and the value TeamA, specify tag:Owner for the filter name and TeamA for the filter value.    tag-key - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.    virtualization-type - The virtualization type (paravirtual | hvm).
         @OptionalCustomCoding<ArrayCoder<_FiltersEncoding, Filter>>
         public var filters: [Filter]?
         /// The image IDs. Default: Describes all images available to you.
@@ -18005,6 +18108,8 @@ extension EC2 {
         public let iops: Int?
         /// Identifier (key ID, key alias, ID ARN, or alias ARN) for a customer managed CMK under which the EBS volume is encrypted. This parameter is only supported on BlockDeviceMapping objects called by RunInstances, RequestSpotFleet, and RequestSpotInstances.
         public let kmsKeyId: String?
+        /// The ARN of the Outpost on which the snapshot is stored.
+        public let outpostArn: String?
         /// The ID of the snapshot.
         public let snapshotId: String?
         /// The throughput that the volume supports, in MiB/s. This parameter is valid only for gp3 volumes. Valid Range: Minimum value of 125. Maximum value of 1000.
@@ -18014,11 +18119,12 @@ extension EC2 {
         /// The volume type. For more information, see Amazon EBS volume types in the Amazon EC2 User Guide. If the volume type is io1 or io2, you must specify the IOPS that the volume supports.
         public let volumeType: VolumeType?
 
-        public init(deleteOnTermination: Bool? = nil, encrypted: Bool? = nil, iops: Int? = nil, kmsKeyId: String? = nil, snapshotId: String? = nil, throughput: Int? = nil, volumeSize: Int? = nil, volumeType: VolumeType? = nil) {
+        public init(deleteOnTermination: Bool? = nil, encrypted: Bool? = nil, iops: Int? = nil, kmsKeyId: String? = nil, outpostArn: String? = nil, snapshotId: String? = nil, throughput: Int? = nil, volumeSize: Int? = nil, volumeType: VolumeType? = nil) {
             self.deleteOnTermination = deleteOnTermination
             self.encrypted = encrypted
             self.iops = iops
             self.kmsKeyId = kmsKeyId
+            self.outpostArn = outpostArn
             self.snapshotId = snapshotId
             self.throughput = throughput
             self.volumeSize = volumeSize
@@ -18030,6 +18136,7 @@ extension EC2 {
             case encrypted
             case iops
             case kmsKeyId = "KmsKeyId"
+            case outpostArn
             case snapshotId
             case throughput
             case volumeSize
@@ -19346,7 +19453,7 @@ extension EC2 {
         public var launchTemplateConfigs: [FleetLaunchTemplateConfig]?
         /// The allocation strategy of On-Demand Instances in an EC2 Fleet.
         public let onDemandOptions: OnDemandOptions?
-        /// Indicates whether EC2 Fleet should replace unhealthy instances.
+        /// Indicates whether EC2 Fleet should replace unhealthy Spot Instances. Supported only for fleets of type maintain. For more information, see EC2 Fleet health checks in the Amazon EC2 User Guide.
         public let replaceUnhealthyInstances: Bool?
         /// The configuration of Spot Instances in an EC2 Fleet.
         public let spotOptions: SpotOptions?
@@ -23743,7 +23850,7 @@ extension EC2 {
     public struct LaunchPermission: AWSEncodableShape & AWSDecodableShape {
         /// The name of the group.
         public let group: PermissionGroup?
-        /// The AWS account ID.
+        /// The AWS account ID. Constraints: Up to 10 000 account IDs can be specified in a single request.
         public let userId: String?
 
         public init(group: PermissionGroup? = nil, userId: String? = nil) {
@@ -25263,6 +25370,40 @@ extension EC2 {
 
         private enum CodingKeys: String, CodingKey {
             case sizeInMiB
+        }
+    }
+
+    public struct ModifyAddressAttributeRequest: AWSEncodableShape {
+        /// [EC2-VPC] The allocation ID.
+        public let allocationId: String
+        /// The domain name to modify for the IP address.
+        public let domainName: String?
+        /// Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.
+        public let dryRun: Bool?
+
+        public init(allocationId: String, domainName: String? = nil, dryRun: Bool? = nil) {
+            self.allocationId = allocationId
+            self.domainName = domainName
+            self.dryRun = dryRun
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case allocationId = "AllocationId"
+            case domainName = "DomainName"
+            case dryRun = "DryRun"
+        }
+    }
+
+    public struct ModifyAddressAttributeResult: AWSDecodableShape {
+        /// Information about the Elastic IP address.
+        public let address: AddressAttribute?
+
+        public init(address: AddressAttribute? = nil) {
+            self.address = address
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case address
         }
     }
 
@@ -26868,7 +27009,7 @@ extension EC2 {
         public let dryRun: Bool?
         /// (Interface and gateway endpoints) A policy to attach to the endpoint that controls access to the service. The policy must be in valid JSON format.
         public let policyDocument: String?
-        /// (Interface endpoint) Indicates whether a private hosted zone is associated with the VPC.
+        /// (Interface endpoint) Indicates whether a private hosted zone is associated with the VPC.  Private DNS is not supported for Amazon S3 interface endpoints.
         public let privateDnsEnabled: Bool?
         /// (Gateway endpoint) One or more route table IDs to disassociate from the endpoint.
         @OptionalCustomCoding<ArrayCoder<_RemoveRouteTableIdsEncoding, String>>
@@ -29012,6 +29153,27 @@ extension EC2 {
         }
     }
 
+    public struct PtrUpdateStatus: AWSDecodableShape {
+        /// The reason for the PTR record update.
+        public let reason: String?
+        /// The status of the PTR record update.
+        public let status: String?
+        /// The value for the PTR record update.
+        public let value: String?
+
+        public init(reason: String? = nil, status: String? = nil, value: String? = nil) {
+            self.reason = reason
+            self.status = status
+            self.value = value
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case reason
+            case status
+            case value
+        }
+    }
+
     public struct PublicIpv4Pool: AWSDecodableShape {
         public struct _PoolAddressRangesEncoding: ArrayCoderProperties { public static let member = "item" }
         public struct _TagsEncoding: ArrayCoderProperties { public static let member = "item" }
@@ -29363,7 +29525,7 @@ extension EC2 {
         /// The billing product codes. Your account must be authorized to specify billing product codes. Otherwise, you can use the AWS Marketplace to bill for the use of an AMI.
         @OptionalCustomCoding<ArrayCoder<_BillingProductsEncoding, String>>
         public var billingProducts: [String]?
-        /// The block device mapping entries.
+        /// The block device mapping entries. If you create an AMI on an Outpost, then all backing snapshots must be on the same Outpost or in the Region of that Outpost. AMIs on an Outpost that include local snapshots can be used to launch instances on the same Outpost only. For more information,  Amazon EBS local snapshots on Outposts in the Amazon Elastic Compute Cloud User Guide.
         @OptionalCustomCoding<ArrayCoder<_BlockDeviceMappingsEncoding, BlockDeviceMapping>>
         public var blockDeviceMappings: [BlockDeviceMapping]?
         /// A description for your AMI.
@@ -30866,6 +31028,40 @@ extension EC2 {
             case reservedInstancesOfferingId
             case scope
             case usagePrice
+        }
+    }
+
+    public struct ResetAddressAttributeRequest: AWSEncodableShape {
+        /// [EC2-VPC] The allocation ID.
+        public let allocationId: String
+        /// The attribute of the IP address.
+        public let attribute: AddressAttributeName
+        /// Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is DryRunOperation. Otherwise, it is UnauthorizedOperation.
+        public let dryRun: Bool?
+
+        public init(allocationId: String, attribute: AddressAttributeName, dryRun: Bool? = nil) {
+            self.allocationId = allocationId
+            self.attribute = attribute
+            self.dryRun = dryRun
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case allocationId = "AllocationId"
+            case attribute = "Attribute"
+            case dryRun = "DryRun"
+        }
+    }
+
+    public struct ResetAddressAttributeResult: AWSDecodableShape {
+        /// Information about the IP address.
+        public let address: AddressAttribute?
+
+        public init(address: AddressAttribute? = nil) {
+            self.address = address
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case address
         }
     }
 
@@ -32786,6 +32982,8 @@ extension EC2 {
         public let encrypted: Bool?
         /// The Amazon Resource Name (ARN) of the AWS Key Management Service (AWS KMS) customer master key (CMK) that was used to protect the volume encryption key for the parent volume.
         public let kmsKeyId: String?
+        /// The ARN of the AWS Outpost on which the snapshot is stored. For more information, see EBS Local Snapshot on Outposts in the Amazon Elastic Compute Cloud User Guide.
+        public let outpostArn: String?
         /// The AWS owner alias, from an Amazon-maintained list (amazon). This is not the user-configured AWS account alias set using the IAM console.
         public let ownerAlias: String?
         /// The AWS account ID of the EBS snapshot owner.
@@ -32808,11 +33006,12 @@ extension EC2 {
         /// The size of the volume, in GiB.
         public let volumeSize: Int?
 
-        public init(dataEncryptionKeyId: String? = nil, description: String? = nil, encrypted: Bool? = nil, kmsKeyId: String? = nil, ownerAlias: String? = nil, ownerId: String? = nil, progress: String? = nil, snapshotId: String? = nil, startTime: Date? = nil, state: SnapshotState? = nil, stateMessage: String? = nil, tags: [Tag]? = nil, volumeId: String? = nil, volumeSize: Int? = nil) {
+        public init(dataEncryptionKeyId: String? = nil, description: String? = nil, encrypted: Bool? = nil, kmsKeyId: String? = nil, outpostArn: String? = nil, ownerAlias: String? = nil, ownerId: String? = nil, progress: String? = nil, snapshotId: String? = nil, startTime: Date? = nil, state: SnapshotState? = nil, stateMessage: String? = nil, tags: [Tag]? = nil, volumeId: String? = nil, volumeSize: Int? = nil) {
             self.dataEncryptionKeyId = dataEncryptionKeyId
             self.description = description
             self.encrypted = encrypted
             self.kmsKeyId = kmsKeyId
+            self.outpostArn = outpostArn
             self.ownerAlias = ownerAlias
             self.ownerId = ownerId
             self.progress = progress
@@ -32830,6 +33029,7 @@ extension EC2 {
             case description
             case encrypted
             case kmsKeyId
+            case outpostArn
             case ownerAlias
             case ownerId
             case progress
@@ -32924,6 +33124,8 @@ extension EC2 {
         public let description: String?
         /// Indicates whether the snapshot is encrypted.
         public let encrypted: Bool?
+        /// The ARN of the AWS Outpost on which the snapshot is stored. For more information, see EBS Local Snapshot on Outposts in the Amazon Elastic Compute Cloud User Guide.
+        public let outpostArn: String?
         /// Account id used when creating this snapshot.
         public let ownerId: String?
         /// Progress this snapshot has made towards completing.
@@ -32942,9 +33144,10 @@ extension EC2 {
         /// Size of the volume from which this snapshot was created.
         public let volumeSize: Int?
 
-        public init(description: String? = nil, encrypted: Bool? = nil, ownerId: String? = nil, progress: String? = nil, snapshotId: String? = nil, startTime: Date? = nil, state: SnapshotState? = nil, tags: [Tag]? = nil, volumeId: String? = nil, volumeSize: Int? = nil) {
+        public init(description: String? = nil, encrypted: Bool? = nil, outpostArn: String? = nil, ownerId: String? = nil, progress: String? = nil, snapshotId: String? = nil, startTime: Date? = nil, state: SnapshotState? = nil, tags: [Tag]? = nil, volumeId: String? = nil, volumeSize: Int? = nil) {
             self.description = description
             self.encrypted = encrypted
+            self.outpostArn = outpostArn
             self.ownerId = ownerId
             self.progress = progress
             self.snapshotId = snapshotId
@@ -32958,6 +33161,7 @@ extension EC2 {
         private enum CodingKeys: String, CodingKey {
             case description
             case encrypted
+            case outpostArn
             case ownerId
             case progress
             case snapshotId

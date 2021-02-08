@@ -4707,6 +4707,10 @@ extension MediaLive {
         }
     }
 
+    public struct FrameCaptureHlsSettings: AWSEncodableShape & AWSDecodableShape {
+        public init() {}
+    }
+
     public struct FrameCaptureOutputSettings: AWSEncodableShape & AWSDecodableShape {
         /// Required if the output group contains more than one output. This modifier forms part of the output file name.
         public let nameModifier: String?
@@ -4722,11 +4726,11 @@ extension MediaLive {
 
     public struct FrameCaptureSettings: AWSEncodableShape & AWSDecodableShape {
         /// The frequency at which to capture frames for inclusion in the output. May be specified in either seconds or milliseconds, as specified by captureIntervalUnits.
-        public let captureInterval: Int
+        public let captureInterval: Int?
         /// Unit for the frame capture interval.
         public let captureIntervalUnits: FrameCaptureIntervalUnit?
 
-        public init(captureInterval: Int, captureIntervalUnits: FrameCaptureIntervalUnit? = nil) {
+        public init(captureInterval: Int? = nil, captureIntervalUnits: FrameCaptureIntervalUnit? = nil) {
             self.captureInterval = captureInterval
             self.captureIntervalUnits = captureIntervalUnits
         }
@@ -5702,11 +5706,13 @@ extension MediaLive {
     public struct HlsSettings: AWSEncodableShape & AWSDecodableShape {
         public let audioOnlyHlsSettings: AudioOnlyHlsSettings?
         public let fmp4HlsSettings: Fmp4HlsSettings?
+        public let frameCaptureHlsSettings: FrameCaptureHlsSettings?
         public let standardHlsSettings: StandardHlsSettings?
 
-        public init(audioOnlyHlsSettings: AudioOnlyHlsSettings? = nil, fmp4HlsSettings: Fmp4HlsSettings? = nil, standardHlsSettings: StandardHlsSettings? = nil) {
+        public init(audioOnlyHlsSettings: AudioOnlyHlsSettings? = nil, fmp4HlsSettings: Fmp4HlsSettings? = nil, frameCaptureHlsSettings: FrameCaptureHlsSettings? = nil, standardHlsSettings: StandardHlsSettings? = nil) {
             self.audioOnlyHlsSettings = audioOnlyHlsSettings
             self.fmp4HlsSettings = fmp4HlsSettings
+            self.frameCaptureHlsSettings = frameCaptureHlsSettings
             self.standardHlsSettings = standardHlsSettings
         }
 
@@ -5717,6 +5723,7 @@ extension MediaLive {
         private enum CodingKeys: String, CodingKey {
             case audioOnlyHlsSettings
             case fmp4HlsSettings
+            case frameCaptureHlsSettings
             case standardHlsSettings
         }
     }
